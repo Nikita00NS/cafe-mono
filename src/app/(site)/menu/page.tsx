@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { getSettings } from '@/lib/db';
 import { MENU } from '@/lib/menu';
+import { getPhotos, withPhotos } from '@/lib/photos';
 import { MenuBrowser } from '@/components/MenuBrowser';
 import { CAFE } from '@/lib/cafe';
 
@@ -14,6 +15,8 @@ export const metadata: Metadata = {
 
 export default async function MenuPage() {
   const settings = await getSettings();
+  const photos = await getPhotos();
+  const menu = withPhotos(MENU, photos);
 
   return (
     <>
@@ -33,7 +36,7 @@ export default async function MenuPage() {
         </div>
       </section>
 
-      <MenuBrowser items={MENU} stopList={settings.stopList} />
+      <MenuBrowser items={menu} stopList={settings.stopList} />
     </>
   );
 }

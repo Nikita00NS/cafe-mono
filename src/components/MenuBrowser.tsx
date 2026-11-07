@@ -4,11 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { CATEGORIES, LUNCHES } from '@/lib/menu';
 import type { CategoryId, MenuItem } from '@/lib/types';
 import { AddToCartButton } from './AddToCartButton';
+import { DishModal, type ModalDish } from './DishModal';
 import { formatPrice } from '@/lib/format';
 
 export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: string[] }) {
   const [query, setQuery] = useState('');
   const [active, setActive] = useState<CategoryId | null>(CATEGORIES[0].id);
+  const [selected, setSelected] = useState<ModalDish | null>(null);
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const filtered = useMemo(() => {
@@ -47,6 +49,19 @@ export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: 
   }, [query]);
 
   const searching = query.trim().length > 0;
+
+  const openDish = (dish: MenuItem) =>
+    setSelected({
+      id: dish.id,
+      name: dish.name,
+      description: dish.description,
+      price: dish.price,
+      image: dish.image,
+      weight: dish.weight,
+      tags: dish.tags,
+      badge: dish.badge,
+      stopped: stopList.includes(dish.id),
+    });
 
   return (
     <>
@@ -87,11 +102,34 @@ export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: 
             </div>
             <div className="menu-list">
               {LUNCHES.map((lunch) => (
-                <div className="menu-row" key={lunch.id}>
+                <div
+                  className="menu-row menu-row--clickable"
+                  key={lunch.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() =>
+                    setSelected({
+                      id: lunch.id,
+                      name: `Обед «${lunch.title}»`,
+                      description: 'Комплексный обед: суп, горячее и салат. Хлеб входит в стоимость.',
+                      price: lunch.price,
+                      details: lunch.composition,
+                      tags: lunch.note ? [lunch.note] : undefined,
+                      stopped: stopList.includes(lunch.id),
+                    })
+                  }
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      (event.currentTarget as HTMLElement).click();
+                    }
+                  }}
+                >
                   <div>
                     <div className="menu-row__name">
                       Обед «{lunch.title}»
                       {lunch.note && <span className="tag">{lunch.note}</span>}
+                      <span className="menu-row__peek">состав</span>
                     </div>
                     <p className="menu-row__desc">{lunch.composition.join(' · ')}</p>
                   </div>
@@ -133,7 +171,20 @@ export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: 
                 {dishes.map((dish) => {
                   const stopped = stopList.includes(dish.id);
                   return (
-                    <div className={`menu-row${stopped ? ' is-stopped' : ''}`} key={dish.id}>
+                    <div
+                      className={`menu-row menu-row--clickable${stopped ? ' is-stopped' : ''}`}
+                      key={dish.id}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${dish.name} — фото и описание`}
+                      onClick={() => openDish(dish)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          openDish(dish);
+                        }
+                      }}
+                    >
                       <div>
                         <div className="menu-row__name">
                           {dish.name}
@@ -143,6 +194,7 @@ export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: 
                               {tag}
                             </span>
                           ))}
+                          <span className="menu-row__peek">фото</span>
                         </div>
                         <p className="menu-row__desc">{dish.description}</p>
                       </div>
@@ -174,6 +226,8 @@ export function MenuBrowser({ items, stopList }: { items: MenuItem[]; stopList: 
           </div>
         )}
       </div>
+
+      <DishModal dish={selected} onClose={() => setSelected(null)} />
     </>
   );
 }
