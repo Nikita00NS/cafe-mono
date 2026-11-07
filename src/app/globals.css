@@ -3743,3 +3743,24 @@ section[id],
   border-color: var(--shu);
   color: #fff;
 }
+
+
+/* Демо-режим админки (статическая версия на GitHub Pages) */
+.admin-demo-chip {
+  margin-left: 10px;
+  padding: 3px 9px;
+  border: 1px solid rgba(193, 165, 106, .55);
+  border-radius: 999px;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  cursor: help;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .admin-demo-chip {
+    margin-left: 0;
+  }
+}

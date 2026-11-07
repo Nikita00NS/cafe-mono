@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { login as apiLogin, IS_DEMO } from '@/lib/api-client';
 
 export function AdminLoginForm() {
   const router = useRouter();
@@ -15,14 +16,9 @@ export function AdminLoginForm() {
     setError(null);
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        setError(data?.error || 'Не удалось войти');
+      const data = await apiLogin(password);
+      if (!data.ok) {
+        setError(data.error || 'Не удалось войти');
         return;
       }
       router.replace('/admin');
@@ -68,8 +64,11 @@ export function AdminLoginForm() {
         </button>
 
         <p className="login-hint">
-          Пароль по умолчанию — <strong>mono2026</strong>. Задайте свой в переменной окружения
-          <code> ADMIN_PASSWORD</code>. <br />
+          Пароль по умолчанию — <strong>mono2026</strong>.{' '}
+          {IS_DEMO
+            ? 'Демо-режим: заказы и настройки хранятся в этом браузере.'
+            : 'Задайте свой в переменной окружения ADMIN_PASSWORD.'}{' '}
+          <br />
           <Link href="/" style={{ textDecoration: 'underline', textUnderlineOffset: 3 }}>
             Вернуться на сайт
           </Link>
