@@ -100,9 +100,19 @@ data/db.json           заказы и настройки (создаётся а
 
 ## Деплой
 
-**VPS:** `npm ci && npm run build && npm start` под pm2/systemd, nginx как reverse proxy на порт 3000, HTTPS через certbot. Каталог `data/` — в бэкап (cron + копия раз в сутки).
+Подробная пошаговая инструкция — в [DEPLOY.md](./DEPLOY.md): домен и DNS, VPS на Ubuntu, pm2, nginx, HTTPS, бэкапы, Docker, разбор ошибок.
 
-**Vercel/аналог:** работает, но файловая система там только для чтения — нужна внешняя БД (см. выше) либо примонтированный том.
+Коротко для VPS:
+
+```bash
+npm ci && npm run build
+pm2 start ecosystem.config.cjs && pm2 save
+# nginx: deploy/nginx.conf.example → /etc/nginx/sites-available/
+```
+
+**GitHub Pages не подойдёт:** он отдаёт только статические файлы, а сайту нужен Node.js-сервер (API заказов, админка, база `data/db.json`). Сайт на Pages откроется, но заказы и `/admin` работать не будут.
+
+**Vercel/аналог:** сайт работает, но файловая система только для чтения — нужна внешняя БД (см. выше) либо том на Render/Railway.
 
 ## Безопасность
 

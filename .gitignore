@@ -5,3 +5,5 @@ data/db.json
 *.tsbuildinfo
 .env*.local
 .DS_Store
+logs
+.vercel
