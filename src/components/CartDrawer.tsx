@@ -6,6 +6,7 @@ import { useCart } from './cart/CartProvider';
 import { formatPrice, formatTime, isValidPhone } from '@/lib/format';
 import { CAFE } from '@/lib/cafe';
 import type { OrderType, PaymentMethod } from '@/lib/types';
+import { asset, STATIC_SITE } from '@/lib/asset';
 
 type View = 'cart' | 'checkout' | 'success';
 
@@ -40,7 +41,7 @@ export function CartDrawer() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (!isOpen || view !== 'checkout') return;
+    if (STATIC_SITE || !isOpen || view !== 'checkout') return;
     let active = true;
     fetch('/api/state', { cache: 'no-store' })
       .then((res) => res.json())
@@ -172,7 +173,7 @@ export function CartDrawer() {
                 items.map((item) => (
                   <div className="cart-line" key={item.id}>
                     <div className="cart-line__media">
-                      {item.image ? <img src={item.image} alt="" loading="lazy" /> : <span>М</span>}
+                      {item.image ? <img src={asset(item.image)} alt="" loading="lazy" /> : <span>М</span>}
                     </div>
                     <div>
                       <div className="cart-line__name">{item.name}</div>
@@ -212,9 +213,23 @@ export function CartDrawer() {
                     ? `До бесплатной доставки — ${formatPrice(freeLeft)}. Или заберите заказ сами.`
                     : 'Доставка по городу — бесплатно.'}
                 </p>
-                <button type="button" className="btn btn--primary btn--block" onClick={() => setView('checkout')}>
-                  Оформить заказ
-                </button>
+                {STATIC_SITE ? (
+                  <div className="cart-call">
+                    <p className="form-hint">
+                      Это статическая версия сайта: заказ принимаем по телефону. Назовите состав корзины —
+                      приготовим и привезём.
+                    </p>
+                    {CAFE.phones.map((phone) => (
+                      <a key={phone.tel} href={`tel:${phone.tel}`} className="btn btn--primary btn--block">
+                        Позвонить · {phone.display}
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <button type="button" className="btn btn--primary btn--block" onClick={() => setView('checkout')}>
+                    Оформить заказ
+                  </button>
+                )}
               </div>
             )}
           </>

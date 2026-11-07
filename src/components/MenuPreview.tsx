@@ -6,6 +6,7 @@ import { CATEGORIES } from '@/lib/menu';
 import type { CategoryId, MenuItem } from '@/lib/types';
 import { AddToCartButton } from './AddToCartButton';
 import { formatPrice } from '@/lib/format';
+import { asset } from '@/lib/asset';
 
 export function MenuPreview({ items, stopList }: { items: MenuItem[]; stopList: string[] }) {
   const [active, setActive] = useState<CategoryId>('japanese');
@@ -35,7 +36,7 @@ export function MenuPreview({ items, stopList }: { items: MenuItem[]; stopList: 
             <article className={`dish${stopped ? ' is-stopped' : ''}`} key={dish.id}>
               <div className={`dish__media${dish.image ? '' : ' dish__media--typographic'}`}>
                 {dish.image ? (
-                  <img src={dish.image} alt={dish.name} loading="lazy" />
+                  <img src={asset(dish.image)} alt={dish.name} loading="lazy" />
                 ) : (
                   <>
                     <span>{dish.name.slice(0, 1)}</span>

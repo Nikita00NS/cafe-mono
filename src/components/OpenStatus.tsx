@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { STATIC_SITE } from '@/lib/asset';
 
 type Props = {
   initialOpen: boolean;
@@ -11,6 +12,7 @@ export function OpenStatus({ initialOpen, initialLabel }: Props) {
   const [state, setState] = useState({ open: initialOpen, label: initialLabel });
 
   useEffect(() => {
+    if (STATIC_SITE) return;
     let active = true;
     const load = () =>
       fetch('/api/state', { cache: 'no-store' })

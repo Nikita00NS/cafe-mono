@@ -7,6 +7,7 @@ import { formatPrice } from '@/lib/format';
 import { OpenStatus } from '@/components/OpenStatus';
 import { MenuPreview } from '@/components/MenuPreview';
 import { AddToCartButton } from '@/components/AddToCartButton';
+import { asset } from '@/lib/asset';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,7 +62,7 @@ export default async function HomePage() {
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="hero">
         <div className="hero__media">
-          <img src="/images/hero-interior.jpg" alt="Интерьер кафе МОНО вечером" fetchPriority="high" />
+          <img src={asset('/images/hero-interior.jpg')} alt="Интерьер кафе МОНО вечером" fetchPriority="high" />
         </div>
         <div className="hero__overlay" />
         <div className="container hero__content">
@@ -200,7 +201,7 @@ export default async function HomePage() {
           <div className="worlds">
             <Link href="/menu#japanese" className="world-card reveal">
               <div className="world-card__media">
-                <img src="/images/sushi-set.jpg" alt="Роллы японской кухни" loading="lazy" />
+                <img src={asset('/images/sushi-set.jpg')} alt="Роллы японской кухни" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">01 / JAPAN</span>
@@ -214,7 +215,7 @@ export default async function HomePage() {
 
             <Link href="/menu#italian" className="world-card reveal">
               <div className="world-card__media">
-                <img src="/images/pizza.jpg" alt="Пицца и паста итальянской кухни" loading="lazy" />
+                <img src={asset('/images/pizza.jpg')} alt="Пицца и паста итальянской кухни" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">02 / ITALY</span>
@@ -228,7 +229,7 @@ export default async function HomePage() {
 
             <Link href="/menu#european" className="world-card reveal">
               <div className="world-card__media">
-                <img src="/images/europe-dish.jpg" alt="Европейские блюда на гриле" loading="lazy" />
+                <img src={asset('/images/europe-dish.jpg')} alt="Европейские блюда на гриле" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">03 / EUROPE</span>
@@ -336,7 +337,7 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <div className="set-card__media">
-                  {set.image && <img src={set.image} alt={set.name} loading="lazy" />}
+                  {set.image && <img src={asset(set.image)} alt={set.name} loading="lazy" />}
                 </div>
               </article>
             ))}
@@ -368,7 +369,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="duo">
             <Link href="/menu#breakfast" className="duo-card reveal">
-              <img src="/images/breakfast.jpg" alt="Завтраки в кафе МОНО" loading="lazy" />
+              <img src={asset('/images/breakfast.jpg')} alt="Завтраки в кафе МОНО" loading="lazy" />
               <div className="duo-card__body">
                 <span className="eyebrow" style={{ color: 'rgba(247,243,234,.7)' }}>
                   С 09:00 до 12:00
@@ -382,7 +383,7 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/menu#coffee" className="duo-card reveal">
-              <img src="/images/coffee.jpg" alt="Кофе в кафе МОНО" loading="lazy" />
+              <img src={asset('/images/coffee.jpg')} alt="Кофе в кафе МОНО" loading="lazy" />
               <div className="duo-card__body">
                 <span className="eyebrow" style={{ color: 'rgba(247,243,234,.7)' }}>
                   Кофе и десерты

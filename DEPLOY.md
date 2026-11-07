@@ -1,66 +1,106 @@
-# Деплой сайта кафе «МОНО»
+# Как выпустить сайт кафе «МОНО»
 
-## 0. Сначала про ошибку GitHub Pages
+В проекте две сборки:
 
-> **The custom domain `pagesmono` is not properly formatted**
-
-Эта ошибка не связана с сайтом. GitHub просит в поле **Settings → Pages → Custom domain** настоящее доменное имя, а `pagesmono` — просто слово. Домен должен содержать точку и принадлежать вам, например `cafe-mono.ru` или `www.cafe-mono.ru`.
-
-**Что сделать прямо сейчас:**
-
-1. Откройте репозиторий → **Settings → Pages**.
-2. В поле **Custom domain** удалите `pagesmono` и нажмите **Save** (если поле пустое — Pages будет отдавать сайт по адресу `https://nikita00ns.github.io/cafe-mono/`). Либо впишите реальный домен, который вы купили, — но только после настройки DNS (шаг 2 ниже).
-3. Если домен уже куплен — в панели регистратора добавьте:
-   - `A` записи для `@`: `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - `CNAME` для `www` → `nikita00ns.github.io`
-   Через 15–60 минут нажмите **Check again** и включите **Enforce HTTPS**.
-
-### ⚠️ Важно: этот сайт нельзя разместить на GitHub Pages
-
-GitHub Pages умеет отдавать **только статические файлы**. Нашему сайту нужен Node.js-сервер, потому что в нём есть:
-
-- API-маршруты (`/api/orders`, `/api/admin/...`) — приём и обработка заказов;
-- серверный рендеринг и чтение/запись базы заказов (`data/db.json`);
-- авторизация администратора и панель `/admin`.
-
-Если выложить сайт на GitHub Pages, откроется вёрстка, но кнопка «Оформить заказ» и админка работать не будут. Поэтому ниже — два рабочих варианта: **VPS (рекомендуется)** и **Vercel/Render**.
-
-GitHub Pages можно оставить только как заглушку или витрину, но лучше просто выключить.
-
----
-
-## 1. Что понадобится
-
-| Что | Зачем | Порядок цен |
+| Сборка | Где живёт | Что работает |
 | --- | --- | --- |
-| Домен (`cafe-mono.ru`) | Адрес сайта, визитки, реклама | ~200–900 ₽/год |
-| VPS: 1–2 vCPU, 2 ГБ RAM, 20 ГБ SSD, Ubuntu 22.04/24.04 | Сервер под сайт и админку | ~250–700 ₽/мес |
-| Доступ по SSH | Настройка | — |
+| **Статическая** — `npm run build:static` → папка `docs/` | GitHub Pages (бесплатно) | Главная, меню, обеды, сеты, контакты, корзина-«список», звонок в кафе |
+| **Полная** — `npm run build` + `npm start` | VPS / Docker | Всё выше + онлайн-заказ, трекинг, админка, стоп-лист, таймеры |
 
-Подойдут любые VPS-провайдеры, работающие в РФ (Timeweb Cloud, Beget, reg.ru, Selectel, Aeza и т. п.). Регион сервера — Россия, чтобы сайт открывался быстро.
+Главная и меню в статической версии выглядят и работают точно так же, как на сервере. Отличается только оформление заказа: на Pages нет бэкенда, поэтому корзина превращается в список блюд с кнопками «Позвонить» — гость называет состав по телефону.
 
 ---
 
-## 2. Настройка домена (DNS)
+## 1. GitHub Pages: исправляем ошибку с доменом
 
-В панели регистратора домена:
+> **The custom domain `cafe-mono` is not properly formatted**
 
-```
-A      @      <IP вашего сервера>
-A      www    <IP вашего сервера>
-```
+Причина: в **Settings → Pages → Custom domain** вписано имя репозитория (`cafe-mono`). GitHub ждёт в этом поле **доменное имя с точкой**, которое вам принадлежит, — например `cafe-mono.ru`. Слово без домена он считает ошибкой.
 
-Проверка (с вашего компьютера):
+**Что сделать (30 секунд):**
+
+1. Откройте репозиторий → **Settings** (вкладка сверху) → **Pages**.
+2. В блоке **Custom domain** удалите текст `cafe-mono`, оставьте поле **пустым**.
+3. Нажмите **Save**. Ошибка исчезнет.
+4. Если ниже есть кнопка **Unpublish site** или переключатель источника — ничего не трогайте, переходите к шагу 2.
+
+Поле Custom domain нужно только если у вас есть свой домен (раздел 2). Для бесплатного адреса `https://<логин>.github.io/cafe-mono/` оно должно быть пустым.
+
+> **Важно:** источник сайта — папка `docs/` в ветке, а не «GitHub Actions». Если выбрать Actions, GitHub будет искать workflow, которого нет, и сайт не соберётся.
+
+---
+
+## 2. Публикация на GitHub Pages (пошагово)
+
+Статическая сборка уже лежит в репозитории в папке `docs/`, поэтому публиковать можно сразу.
+
+1. **Settings → Pages**.
+2. **Build and deployment → Source**: `Deploy from a branch`.
+3. **Branch**: выберите ветку с сайтом — `arena/94f631fc-cafe-mono` (или `main`, если ветка уже смержена), **Folder**: `/docs`.
+4. **Save**.
+5. Подождите 1–3 минуты и обновите страницу — сверху появится ссылка:
+   **`https://nikita00ns.github.io/cafe-mono/`**
+
+Если открывается 404:
+
+- проверьте, что выбрана именно папка `/docs`, а не `/ (root)`;
+- откройте `https://nikita00ns.github.io/cafe-mono/index.html` — если так работает, значит Pages ещё не догнал сборку, подождите пару минут;
+- убедитесь, что в репозитории есть файл `docs/.nojekyll` (он там есть — он отключает обработку Jekyll и сохраняет папку `_next`).
+
+### Как обновлять сайт на Pages
 
 ```bash
-nslookup cafe-mono.ru
+# правите меню/цены/тексты в src/lib/menu.ts или src/app/(site)/page.tsx
+npm run build:static      # пересобирает папку docs/
+git add docs && git commit -m "Обновил меню" && git push
 ```
 
-DNS обновляется от 5 минут до нескольких часов.
+Через минуту изменения появятся на сайте.
+
+### Чего на GitHub Pages не будет
+
+| Возможность | Pages | Полная версия (VPS) |
+| --- | --- | --- |
+| Главная, меню, обеды, контакты | ✅ | ✅ |
+| Корзина с суммой заказа | ✅ (как список) | ✅ |
+| Оформление заказа на сайте | ❌ только звонок | ✅ |
+| Страница отслеживания `/order/…` | ❌ | ✅ |
+| Админка `/admin`, таймеры, стоп-лист | ❌ | ✅ |
+
+Это ограничение самого GitHub Pages: он отдаёт только файлы, без сервера и базы данных. Полная версия — в разделе 4.
 
 ---
 
-## 3. Установка сервера (Ubuntu 22.04 / 24.04)
+## 3. Свой домен на GitHub Pages
+
+1. Купите домен (`cafe-mono.ru`) у регистратора.
+2. В DNS-панели домена:
+
+   ```
+   A      @      185.199.108.153
+   A      @      185.199.109.153
+   A      @      185.199.110.153
+   A      @      185.199.111.153
+   CNAME  www    nikita00ns.github.io
+   ```
+
+3. Пересоберите статическую версию **без префикса пути** (свой домен отдаёт сайт из корня):
+
+   ```bash
+   NEXT_PUBLIC_BASE_PATH= npm run build:static
+   git add docs && git commit -m "Сборка под свой домен" && git push
+   ```
+
+4. **Settings → Pages → Custom domain** → впишите `cafe-mono.ru` → **Save** (галочка DNS-check может занять до часа).
+5. Дождитесь сертификата и включите **Enforce HTTPS**.
+
+---
+
+## 4. Полная версия: VPS (заказы + админка)
+
+Нужна, если хотите принимать заказы на сайте. Требования: VPS 1–2 vCPU, 2 ГБ RAM, Ubuntu 22.04/24.04 (~250–700 ₽/мес) и домен.
+
+### 4.1 Установка
 
 ```bash
 ssh root@<IP_сервера>
@@ -68,29 +108,22 @@ ssh root@<IP_сервера>
 apt update && apt upgrade -y
 apt install -y curl git nginx ufw
 
-# Node.js 22 LTS
 curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 apt install -y nodejs
 npm i -g pm2
 
-# отдельный пользователь для сайта (не работаем под root)
 adduser --disabled-password --gecos "" mono
 usermod -aG www-data mono
-```
-
-### Код и сборка
-
-```bash
 su - mono
+
 git clone https://github.com/Nikita00NS/cafe-mono.git
-cd cafe-mono
-npm ci
+cd cafe-mono && npm ci
 
 cp .env.example .env.local
 nano .env.local
 ```
 
-Заполните `.env.local`:
+Содержимое `.env.local`:
 
 ```env
 ADMIN_PASSWORD=ваш-надёжный-пароль
@@ -98,9 +131,7 @@ ADMIN_SECRET=длинная-случайная-строка-минимум-32-с
 NEXT_PUBLIC_SITE_URL=https://cafe-mono.ru
 ```
 
-Секрет можно сгенерировать так: `openssl rand -hex 32`.
-
-Сборка и запуск:
+Секрет: `openssl rand -hex 32`.
 
 ```bash
 npm run build
@@ -109,140 +140,97 @@ pm2 save
 exit
 ```
 
-Автозапуск после перезагрузки сервера (от root):
+Автозапуск после перезагрузки (от root):
 
 ```bash
-pm2 startup systemd -u mono --hp /home/mono
+pm2 startup systemd -u mono --hp /home/mono   # выполните выведенную команду
 ```
 
-Команда выведет строку — выполните её, затем `pm2 save` от пользователя `mono`.
-
-Проверка, что приложение поднялось:
-
-```bash
-curl -I http://127.0.0.1:3000        # ожидаем 200
-curl http://127.0.0.1:3000/api/state # ожидаем JSON
-```
-
----
-
-## 4. Nginx + HTTPS
+### 4.2 Nginx и HTTPS
 
 ```bash
 cp /home/mono/cafe-mono/deploy/nginx.conf.example /etc/nginx/sites-available/cafe-mono
-nano /etc/nginx/sites-available/cafe-mono   # замените cafe-mono.ru на ваш домен
+nano /etc/nginx/sites-available/cafe-mono    # замените cafe-mono.ru на свой домен
 ln -s /etc/nginx/sites-available/cafe-mono /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
-```
 
-Сертификат Let's Encrypt:
-
-```bash
 apt install -y certbot python3-certbot-nginx
 certbot --nginx -d cafe-mono.ru -d www.cafe-mono.ru
+
+ufw allow OpenSSH && ufw allow 'Nginx Full' && ufw enable
 ```
 
-Certbot сам настроит редирект на HTTPS и продление.
+DNS для VPS: `A @ → IP сервера` и `A www → IP сервера`.
 
-Файрвол:
+Проверка: `https://cafe-mono.ru` — сайт, `https://cafe-mono.ru/admin` — панель (пароль из `ADMIN_PASSWORD`).
+
+### 4.3 Обновление
 
 ```bash
-ufw allow OpenSSH
-ufw allow 'Nginx Full'
-ufw enable
+su - mono && cd ~/cafe-mono
+git pull && npm ci && npm run build && pm2 restart mono
 ```
 
-Откройте `https://cafe-mono.ru` — сайт должен работать. Админка: `https://cafe-mono.ru/admin`.
+### 4.4 Резервные копии заказов
 
----
-
-## 5. Обновление сайта после правок
-
-```bash
-su - mono
-cd ~/cafe-mono
-git pull
-npm ci
-npm run build
-pm2 restart mono
-```
-
-Проверьте `/admin` и сделайте тестовый заказ.
-
----
-
-## 6. Резервные копии заказов
-
-Все заказы и настройки хранятся в `data/db.json`. Копия раз в сутки:
+Заказы хранятся в `data/db.json`. Ежедневная копия:
 
 ```bash
 mkdir -p /var/backups/mono
 crontab -e
-```
-
-Добавьте строку (от пользователя `mono`):
-
-```
+# добавить строку:
 15 3 * * * cp /home/mono/cafe-mono/data/db.json /var/backups/mono/db-$(date +\%F).json
 ```
 
-Раз в неделю скачивайте копии к себе:
-
-```bash
-scp mono@<IP>:/var/backups/mono/*.json ./
-```
-
 ---
 
-## 7. Вариант без VPS: Vercel / Render / Railway
-
-Быстро и бесплатно на старте, но есть нюанс: **файловая система там только для чтения**, поэтому заказы не сохранятся.
-
-1. Загрузите код в GitHub (уже сделано).
-2. На [vercel.com](https://vercel.com) → **Add New → Project** → выберите репозиторий `cafe-mono`.
-3. Framework: Next.js (определится сам). Добавьте переменные окружения `ADMIN_PASSWORD`, `ADMIN_SECRET`, `NEXT_PUBLIC_SITE_URL`.
-4. Deploy.
-5. Чтобы заработала админка с заказами, нужно заменить хранилище:
-   - подключить Postgres (Supabase/Neon) и переписать `src/lib/db.ts` под него — интерфейс уже изолирован, страницы менять не нужно;
-   - либо взять хостинг с постоянным диском (Render/Railway) и смонтировать том в `/app/data`.
-
-До этого шага сайт будет работать в демо-режиме: заказы принимаются, но после перезапуска контейнера могут исчезнуть.
-
----
-
-## 8. Docker (если удобнее)
+## 5. Docker (альтернатива pm2)
 
 ```bash
-cp .env.example .env.local      # заполните пароль и домен
+cp .env.example .env.local     # заполните пароль и домен
 docker compose up -d --build
 ```
 
-Заказы сохраняются в каталоге `./data` на хосте (том в `docker-compose.yml`). Перед этим установите Docker и Nginx по шагам 3–4 (только без pm2).
+Заказы сохраняются в `./data` на хосте. Nginx и HTTPS — как в разделе 4.2, только без pm2.
 
 ---
 
-## 9. Чек-лист перед запуском
+## 6. Vercel / Render / Railway
+
+Сайт задеплоится из GitHub в пару кликов, но файловая система там только для чтения — заказы не сохранятся. Варианты:
+
+- подключить Postgres (Supabase/Neon) и переписать `src/lib/db.ts` — интерфейс изолирован, страницы менять не нужно;
+- либо взять хостинг с постоянным диском (Render Disk, Railway Volume) и смонтировать том в `/app/data`.
+
+До этого сайт работает как демо: заказы принимаются, но после перезапуска контейнера могут исчезнуть.
+
+---
+
+## 7. Чек-лист перед запуском
 
 - [ ] `ADMIN_PASSWORD` изменён с `mono2026` на свой
 - [ ] `ADMIN_SECRET` — случайная строка ≥ 32 символов
 - [ ] `NEXT_PUBLIC_SITE_URL` = ваш домен с `https://`
 - [ ] HTTPS работает, `http://` перенаправляется на `https://`
 - [ ] Цены, состав и фото заменены на реальные (`src/lib/menu.ts`, `public/images/`)
-- [ ] Сделан тестовый заказ с телефона, проверили админку и звук
+- [ ] Тестовый заказ с телефона + проверка админки и звука
 - [ ] Настроены резервные копии `data/db.json`
 - [ ] Часы работы и условия доставки проверены в `/admin → Настройки`
-- [ ] Ссылка на сайт добавлена во ВКонтакте и в карточки Яндекс.Карт / 2ГИС
+- [ ] Ссылка на сайт добавлена во ВКонтакте, Яндекс.Карты и 2ГИС
 
 ---
 
-## 10. Если что-то не работает
+## 8. Если что-то не работает
 
-| Симптом | Причина / решение |
+| Симптом | Решение |
 | --- | --- |
-| `502 Bad Gateway` | Приложение не запущено: `pm2 status`, `pm2 logs mono` |
-| `EADDRINUSE :3000` | Порт занят: `lsof -i :3000`, завершите старый процесс или `pm2 restart mono` |
-| Сайт открывается, заказ не оформляется | Проверьте `pm2 logs mono` и права на каталог `data/`: `chown -R mono:mono /home/mono/cafe-mono/data` |
-| Не пускает в `/admin` | Неверный пароль или не задан `ADMIN_PASSWORD` в `.env.local`; после правки — `pm2 restart mono --update-env` |
-| Сборка падает с `JavaScript heap out of memory` | Добавьте swap: `fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile` |
-| Ссылки и OG-картинки ведут на localhost | В `.env.local` укажите `NEXT_PUBLIC_SITE_URL=https://ваш-домен` и пересоберите |
+| `The custom domain ... is not properly formatted` | Очистить поле Custom domain в Settings → Pages (раздел 1) |
+| Pages отдаёт 404 | Source = `Deploy from a branch`, Folder = `/docs`; проверить наличие `docs/index.html` |
+| На Pages нет стилей / битые ссылки на картинки | Сборка сделана с неверным `NEXT_PUBLIC_BASE_PATH`: для `github.io/<repo>/` он должен быть `/<repo>`, для своего домена — пустым |
+| `502 Bad Gateway` на VPS | Приложение не запущено: `pm2 status`, `pm2 logs mono` |
+| `EADDRINUSE :3000` | `lsof -i :3000` и завершить старый процесс либо `pm2 restart mono` |
+| Заказ не оформляется на VPS | `pm2 logs mono`; права на `data/`: `chown -R mono:mono ~/cafe-mono/data` |
+| Не пускает в `/admin` | Неверный пароль / не задан `ADMIN_PASSWORD`; после правки: `pm2 restart mono --update-env` |
+| Сборка падает с `heap out of memory` | Добавить swap: `fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile` |
+| Ссылки и OG-картинки ведут на localhost | Указать `NEXT_PUBLIC_SITE_URL=https://ваш-домен` и пересобрать |

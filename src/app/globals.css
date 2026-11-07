@@ -1924,6 +1924,15 @@ ol {
 
 /* ── Order success ──────────────────────────────────────── */
 
+.cart-call {
+  display: grid;
+  gap: 8px;
+}
+
+.cart-call .form-hint {
+  margin-bottom: 2px;
+}
+
 .success {
   display: grid;
   gap: 18px;

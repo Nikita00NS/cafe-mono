@@ -100,7 +100,17 @@ data/db.json           заказы и настройки (создаётся а
 
 ## Деплой
 
-Подробная пошаговая инструкция — в [DEPLOY.md](./DEPLOY.md): домен и DNS, VPS на Ubuntu, pm2, nginx, HTTPS, бэкапы, Docker, разбор ошибок.
+Подробная пошаговая инструкция — в [DEPLOY.md](./DEPLOY.md): GitHub Pages, свой домен и DNS, VPS на Ubuntu, pm2, nginx, HTTPS, бэкапы, Docker, разбор ошибок.
+
+**GitHub Pages (бесплатно):** в репозитории уже лежит готовая статическая сборка в `docs/`.
+
+```bash
+npm run build:static    # пересобрать docs/ после правок меню
+```
+
+Settings → Pages → Source: `Deploy from a branch` → ветка + папка `/docs`. Поле Custom domain должно быть пустым (или содержать настоящий домен вида `cafe-mono.ru`). Адрес сайта: `https://<логин>.github.io/cafe-mono/`.
+
+На Pages работают главная, меню, обеды и контакты; онлайн-заказ и админка требуют сервера — см. раздел VPS.
 
 Коротко для VPS:
 
