@@ -3418,3 +3418,328 @@ section[id],
   text-transform: uppercase;
   color: rgba(247, 243, 234, 0.32);
 }
+
+/* ── Кликабельные блюда и модальное окно ─────────────────── */
+
+.dish--clickable,
+.menu-row--clickable {
+  cursor: pointer;
+}
+
+.menu-row--clickable {
+  transition: background 0.25s var(--ease), padding-left 0.25s var(--ease);
+}
+
+.menu-row--clickable:hover {
+  background: rgba(15, 15, 13, 0.035);
+}
+
+.menu-row__peek {
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--shu);
+  opacity: 0;
+  transition: opacity 0.25s var(--ease);
+  white-space: nowrap;
+}
+
+.menu-row--clickable:hover .menu-row__peek,
+.menu-row--clickable:focus-visible .menu-row__peek {
+  opacity: 1;
+}
+
+.dish__more {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(12, 12, 10, 0.72);
+  color: var(--paper);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.dish--clickable:hover .dish__more,
+.dish--clickable:focus-visible .dish__more {
+  opacity: 1;
+  transform: none;
+}
+
+.dish-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 115;
+  background: rgba(10, 10, 8, 0.72);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  display: grid;
+  place-items: center;
+  padding: clamp(12px, 3vw, 32px);
+  animation: modalFade 0.28s var(--ease);
+}
+
+@keyframes modalFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.dish-modal__card {
+  position: relative;
+  width: min(920px, 100%);
+  max-height: min(88svh, 760px);
+  overflow: auto;
+  background: var(--paper);
+  border-radius: 4px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  box-shadow: 0 40px 90px -40px rgba(0, 0, 0, 0.7);
+  animation: modalRise 0.35s var(--ease);
+}
+
+@keyframes modalRise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.dish-modal__close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(12, 12, 10, 0.72);
+  color: var(--paper);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  transition: background 0.25s var(--ease);
+}
+
+.dish-modal__close:hover {
+  background: var(--shu);
+}
+
+.dish-modal__media {
+  position: relative;
+  min-height: 300px;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.dish-modal__media img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dish-modal__placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 75% 20%, rgba(184, 69, 47, 0.32), transparent 58%),
+    linear-gradient(150deg, #1c1c17 0%, #0f0f0d 78%);
+  color: var(--paper);
+}
+
+.dish-modal__placeholder span {
+  font-family: var(--font-serif);
+  font-size: 64px;
+  letter-spacing: 0.24em;
+  color: rgba(247, 243, 234, 0.5);
+}
+
+.dish-modal__placeholder small {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.dish-modal__body {
+  padding: clamp(22px, 3vw, 36px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dish-modal__meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dish-modal__title {
+  font-family: var(--font-serif);
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  margin-top: 2px;
+}
+
+.dish-modal__desc {
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+
+.dish-modal__list {
+  display: grid;
+  gap: 7px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: #4a4740;
+  margin-top: 4px;
+}
+
+.dish-modal__list li {
+  position: relative;
+  padding-left: 16px;
+}
+
+.dish-modal__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 1px;
+  background: var(--shu);
+}
+
+.dish-modal__foot {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dish-modal__price {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  line-height: 1;
+}
+
+@media (max-width: 720px) {
+  .dish-modal__card {
+    grid-template-columns: minmax(0, 1fr);
+    max-height: 90svh;
+  }
+
+  .dish-modal__media {
+    min-height: 220px;
+    aspect-ratio: 4 / 3;
+  }
+
+  .dish-modal__list {
+    font-size: 13px;
+  }
+}
+
+/* ── Реальная карта в контактах ─────────────────────────── */
+
+.map-card--live {
+  padding: 0;
+  min-height: 440px;
+  overflow: hidden;
+}
+
+.map-card--live iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  z-index: 0;
+  filter: saturate(0.95);
+}
+
+.map-card--live .map-card__body {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 14px;
+  z-index: 2;
+  padding: 18px 20px;
+  border-radius: 3px;
+  background: rgba(12, 12, 10, 0.9);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(247, 243, 234, 0.12);
+}
+
+.map-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* ── Соцсети / мессенджеры ──────────────────────────────── */
+
+.social-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+  transition: background 0.25s var(--ease), color 0.25s var(--ease), border-color 0.25s var(--ease);
+}
+
+.social-link:hover {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+
+.social-link--max {
+  border-color: var(--shu);
+  color: var(--shu);
+}
+
+.social-link--max:hover {
+  background: var(--shu);
+  border-color: var(--shu);
+  color: #fff;
+}

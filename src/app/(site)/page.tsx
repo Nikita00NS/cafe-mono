@@ -8,6 +8,7 @@ import { OpenStatus } from '@/components/OpenStatus';
 import { MenuPreview } from '@/components/MenuPreview';
 import { AddToCartButton } from '@/components/AddToCartButton';
 import { asset } from '@/lib/asset';
+import { getPhotos, photoOr, withPhotos } from '@/lib/photos';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,9 +24,12 @@ const MARQUEE = [
 
 export default async function HomePage() {
   const settings = await getSettings();
+  const photos = await getPhotos();
   const open = getOpenState(settings.openHour, settings.closeHour, new Date(), settings.acceptingOrders);
-  const spicySet = MENU_BY_ID['jp-spicy-tuna-set'];
-  const bakedSet = MENU_BY_ID['jp-baked-set'];
+  const menu = withPhotos(MENU, photos);
+  const heroImage = photoOr(photos, 'hero', '/images/hero-mono.jpg');
+  const spicySet = menu.find((item) => item.id === 'jp-spicy-tuna-set') ?? MENU_BY_ID['jp-spicy-tuna-set'];
+  const bakedSet = menu.find((item) => item.id === 'jp-baked-set') ?? MENU_BY_ID['jp-baked-set'];
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -49,7 +53,7 @@ export default async function HomePage() {
       },
     ],
     sameAs: [CAFE.vk],
-    image: '/images/hero-interior.jpg',
+    image: '/images/hero-mono.jpg',
   };
 
   return (
@@ -62,7 +66,7 @@ export default async function HomePage() {
       {/* ── Hero ─────────────────────────────────────────── */}
       <section className="hero">
         <div className="hero__media">
-          <img src={asset('/images/hero-interior.jpg')} alt="Интерьер кафе МОНО вечером" fetchPriority="high" />
+          <img src={asset(heroImage)} alt="Интерьер кафе МОНО вечером" fetchPriority="high" />
         </div>
         <div className="hero__overlay" />
         <div className="container hero__content">
@@ -81,9 +85,6 @@ export default async function HomePage() {
             <div className="hero__actions">
               <Link href="/menu" className="btn btn--light">
                 Смотреть меню
-              </Link>
-              <Link href="#lunches" className="btn btn--ghost">
-                Обеды за 550 ₽
               </Link>
             </div>
           </div>
@@ -201,7 +202,7 @@ export default async function HomePage() {
           <div className="worlds">
             <Link href="/menu#japanese" className="world-card reveal">
               <div className="world-card__media">
-                <img src={asset('/images/sushi-set.jpg')} alt="Роллы японской кухни" loading="lazy" />
+                <img src={asset(photoOr(photos, 'japan', '/images/sushi-set.jpg'))} alt="Роллы японской кухни" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">01 / JAPAN</span>
@@ -215,7 +216,7 @@ export default async function HomePage() {
 
             <Link href="/menu#italian" className="world-card reveal">
               <div className="world-card__media">
-                <img src={asset('/images/pizza.jpg')} alt="Пицца и паста итальянской кухни" loading="lazy" />
+                <img src={asset(photoOr(photos, 'italy', '/images/pizza.jpg'))} alt="Пицца и паста итальянской кухни" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">02 / ITALY</span>
@@ -229,7 +230,7 @@ export default async function HomePage() {
 
             <Link href="/menu#european" className="world-card reveal">
               <div className="world-card__media">
-                <img src={asset('/images/europe-dish.jpg')} alt="Европейские блюда на гриле" loading="lazy" />
+                <img src={asset(photoOr(photos, 'europe', '/images/europe-dish.jpg'))} alt="Европейские блюда на гриле" loading="lazy" />
               </div>
               <div className="world-card__body">
                 <span className="world-card__index">03 / EUROPE</span>
@@ -356,11 +357,11 @@ export default async function HomePage() {
               </h2>
             </div>
             <p className="lede reveal" style={{ maxWidth: '34ch' }}>
-              Всё меню — {MENU.length} позиций: от сырников и роллов до пасты, гриля и десертов.
+              Всё меню — {menu.length} позиций: от сырников и роллов до пасты, гриля и десертов.
             </p>
           </div>
 
-          <MenuPreview items={MENU} stopList={settings.stopList} />
+          <MenuPreview items={menu} stopList={settings.stopList} />
         </div>
       </section>
 
@@ -369,7 +370,7 @@ export default async function HomePage() {
         <div className="container">
           <div className="duo">
             <Link href="/menu#breakfast" className="duo-card reveal">
-              <img src={asset('/images/breakfast.jpg')} alt="Завтраки в кафе МОНО" loading="lazy" />
+              <img src={asset(photoOr(photos, 'breakfast', '/images/breakfast.jpg'))} alt="Завтраки в кафе МОНО" loading="lazy" />
               <div className="duo-card__body">
                 <span className="eyebrow" style={{ color: 'rgba(247,243,234,.7)' }}>
                   С 09:00 до 12:00
@@ -383,7 +384,7 @@ export default async function HomePage() {
             </Link>
 
             <Link href="/menu#coffee" className="duo-card reveal">
-              <img src={asset('/images/coffee.jpg')} alt="Кофе в кафе МОНО" loading="lazy" />
+              <img src={asset(photoOr(photos, 'coffee', '/images/coffee.jpg'))} alt="Кофе в кафе МОНО" loading="lazy" />
               <div className="duo-card__body">
                 <span className="eyebrow" style={{ color: 'rgba(247,243,234,.7)' }}>
                   Кофе и десерты
@@ -526,26 +527,46 @@ export default async function HomePage() {
                   <span className="contact-item__label">Соцсети</span>
                   <div className="contact-item__value">
                     <a href={CAFE.vk} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', textUnderlineOffset: 4 }}>
-                      Мы во ВКонтакте
+                      ВКонтакте
+                    </a>{' '}
+                    ·{' '}
+                    <a href={CAFE.max} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline', textUnderlineOffset: 4 }}>
+                      MAX
                     </a>
-                    <small>Новинки меню, акции и фотографии блюд</small>
+                    <small>Новинки меню, акции, фотографии блюд и заказ в мессенджере</small>
                   </div>
                 </div>
               </div>
+
+              <div className="social-row">
+                <a href={CAFE.vk} target="_blank" rel="noreferrer" className="social-link">
+                  ВКонтакте
+                </a>
+                <a href={CAFE.max} target="_blank" rel="noreferrer" className="social-link social-link--max">
+                  Написать в MAX
+                </a>
+              </div>
             </div>
 
-            <div className="map-card reveal">
-              <div className="map-card__grid" />
-              <div className="map-card__pin">
-                <span className="map-card__dot" />
-                <span className="map-card__label">МОНО</span>
-              </div>
+            <div className="map-card map-card--live reveal">
+              <iframe
+                src={CAFE.mapEmbed}
+                title="Кафе МОНО на карте — Молодогвардейск, ул. Ленина, 18"
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
               <div className="map-card__body">
                 <h3 className="map-card__title">ул. Ленина, 18</h3>
                 <p className="map-card__text">Молодогвардейск · 1 этаж · вход с улицы</p>
-                <a href={CAFE.mapUrl} target="_blank" rel="noreferrer" className="btn btn--light btn--sm" style={{ justifySelf: 'start' }}>
-                  Построить маршрут
-                </a>
+                <div className="map-card__actions">
+                  <a href={CAFE.mapUrl} target="_blank" rel="noreferrer" className="btn btn--light btn--sm">
+                    Открыть в Яндекс.Картах
+                  </a>
+                  <a href={CAFE.mapGoogle} target="_blank" rel="noreferrer" className="btn btn--ghost btn--sm">
+                    Google Maps
+                  </a>
+                </div>
               </div>
             </div>
           </div>

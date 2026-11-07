@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     title: 'Кафе МОНО — три кухни, одно меню',
     description:
       'Япония, Италия и Европа в одном меню. Завтраки, комплексные обеды за 550 ₽, кофе и доставка по Молодогвардейску.',
-    images: [{ url: '/images/hero-interior.jpg', width: 1200, height: 630, alt: 'Кафе МОНО' }],
+    images: [{ url: '/images/hero-mono.jpg', width: 1248, height: 814, alt: 'Кафе МОНО' }],
   },
   twitter: { card: 'summary_large_image' },
   alternates: { canonical: '/' },

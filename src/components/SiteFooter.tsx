@@ -34,6 +34,9 @@ export function SiteFooter() {
               <a href={CAFE.vk} target="_blank" rel="noreferrer">
                 Мы во ВКонтакте
               </a>
+              <a href={CAFE.max} target="_blank" rel="noreferrer">
+                Мы в MAX
+              </a>
             </div>
           </div>
 

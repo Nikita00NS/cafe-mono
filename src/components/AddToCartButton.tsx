@@ -36,7 +36,8 @@ export function AddToCartButton({
       className={`${className}${done ? ' is-added' : ''}`}
       aria-label={`Добавить «${name}» в заказ`}
       disabled={disabled}
-      onClick={() => {
+      onClick={(event) => {
+        event.stopPropagation();
         if (disabled) return;
         add({ id, name, price, image });
         notify(`«${name}» в заказе`);
