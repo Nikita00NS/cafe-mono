@@ -25,7 +25,6 @@ const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '/cafe-mono';
 
 const SERVER_ONLY = [
   'src/app/api',
-  'src/app/admin',
   'src/app/(site)/order',
 ];
 
@@ -56,6 +55,40 @@ for (const rel of SERVER_ONLY) {
   await rm(path.join(appDir, rel));
   console.log(`  · убрано: ${rel}`);
 }
+
+// Админка в статике работает в демо-режиме: без cookies и серверных API,
+// заказы и настройки хранятся в localStorage браузера.
+await fs.writeFile(
+  path.join(appDir, 'src/app/admin/page.tsx'),
+  `import type { Metadata } from 'next';
+import { AdminApp } from '@/components/AdminApp';
+
+export const metadata: Metadata = {
+  title: 'Панель заказов · демо',
+  robots: { index: false, follow: false },
+};
+
+export default function AdminPage() {
+  return <AdminApp />;
+}
+`,
+);
+await fs.writeFile(
+  path.join(appDir, 'src/app/admin/login/page.tsx'),
+  `import type { Metadata } from 'next';
+import { AdminLoginForm } from '@/components/AdminLoginForm';
+
+export const metadata: Metadata = {
+  title: 'Вход в панель · демо',
+  robots: { index: false, follow: false },
+};
+
+export default function AdminLoginPage() {
+  return <AdminLoginForm />;
+}
+`,
+);
+console.log('  · админка: демо-режим (localStorage)');
 
 for (const rel of ['src/app/(site)/page.tsx', 'src/app/(site)/menu/page.tsx']) {
   await patchFile(rel, (source) =>

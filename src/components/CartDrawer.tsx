@@ -6,7 +6,8 @@ import { useCart } from './cart/CartProvider';
 import { formatPrice, formatTime, isValidPhone } from '@/lib/format';
 import { CAFE } from '@/lib/cafe';
 import type { OrderType, PaymentMethod } from '@/lib/types';
-import { asset, STATIC_SITE } from '@/lib/asset';
+import { asset } from '@/lib/asset';
+import { createOrder, fetchPublicState } from '@/lib/api-client';
 
 type View = 'cart' | 'checkout' | 'success';
 
@@ -41,18 +42,15 @@ export function CartDrawer() {
   }, [isOpen]);
 
   useEffect(() => {
-    if (STATIC_SITE || !isOpen || view !== 'checkout') return;
+    if (!isOpen || view !== 'checkout') return;
     let active = true;
-    fetch('/api/state', { cache: 'no-store' })
-      .then((res) => res.json())
-      .then((data) => {
-        if (!active || !data?.settings) return;
-        setDeliveryFee(Number(data.settings.deliveryFee ?? CAFE.delivery.fee));
-        setFreeFrom(Number(data.settings.freeDeliveryFrom ?? CAFE.delivery.freeFrom));
-        setMinOrder(Number(data.settings.minOrder ?? CAFE.delivery.minOrder));
-        setAccepting(Boolean(data.settings.acceptingOrders));
-      })
-      .catch(() => undefined);
+    void fetchPublicState().then((data) => {
+      if (!active || !data?.settings) return;
+      setDeliveryFee(Number(data.settings.deliveryFee ?? CAFE.delivery.fee));
+      setFreeFrom(Number(data.settings.freeDeliveryFrom ?? CAFE.delivery.freeFrom));
+      setMinOrder(Number(data.settings.minOrder ?? CAFE.delivery.minOrder));
+      setAccepting(Boolean(data.settings.acceptingOrders));
+    });
     return () => {
       active = false;
     };
@@ -99,19 +97,14 @@ export function CartDrawer() {
 
     setSending(true);
     try {
-      const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          type: orderType,
-          customer: { name, phone, address, comment },
-          payment,
-          items: items.map((item) => ({ id: item.id, qty: item.qty })),
-        }),
+      const data = await createOrder({
+        type: orderType,
+        customer: { name, phone, address, comment },
+        payment,
+        items: items.map((item) => ({ id: item.id, qty: item.qty })),
       });
-      const data = await response.json();
-      if (!response.ok) {
-        setError(data?.error || 'Не удалось оформить заказ');
+      if (!data.ok) {
+        setError(data.error);
         return;
       }
       setSuccess({
@@ -213,23 +206,9 @@ export function CartDrawer() {
                     ? `До бесплатной доставки — ${formatPrice(freeLeft)}. Или заберите заказ сами.`
                     : 'Доставка по городу — бесплатно.'}
                 </p>
-                {STATIC_SITE ? (
-                  <div className="cart-call">
-                    <p className="form-hint">
-                      Это статическая версия сайта: заказ принимаем по телефону. Назовите состав корзины —
-                      приготовим и привезём.
-                    </p>
-                    {CAFE.phones.map((phone) => (
-                      <a key={phone.tel} href={`tel:${phone.tel}`} className="btn btn--primary btn--block">
-                        Позвонить · {phone.display}
-                      </a>
-                    ))}
-                  </div>
-                ) : (
-                  <button type="button" className="btn btn--primary btn--block" onClick={() => setView('checkout')}>
-                    Оформить заказ
-                  </button>
-                )}
+                <button type="button" className="btn btn--primary btn--block" onClick={() => setView('checkout')}>
+                  Оформить заказ
+                </button>
               </div>
             )}
           </>
@@ -408,7 +387,7 @@ export function CartDrawer() {
               </p>
               <p className="success__text">Сумма заказа: {formatPrice(success.total)}</p>
               <Link
-                href={`/order/${success.number}`}
+                href={`/track/?n=${success.number}`}
                 className="btn btn--primary btn--block"
                 onClick={closeCart}
               >

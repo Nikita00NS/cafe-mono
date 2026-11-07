@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { CAFE } from '@/lib/cafe';
-import { STATIC_SITE } from '@/lib/asset';
 
 export function SiteFooter() {
   return (
@@ -58,15 +57,10 @@ export function SiteFooter() {
         <div className="footer__bottom">
           <span>© {new Date().getFullYear()} кафе «Моно». Все права защищены.</span>
           <span>
-            Сделано с любовью к еде
-            {!STATIC_SITE && (
-              <>
-                {' · '}
-                <Link href="/admin" className="footer__admin">
-                  Панель управления
-                </Link>
-              </>
-            )}
+            Сделано с любовью к еде ·{' '}
+            <Link href="/admin" className="footer__admin">
+              Панель управления
+            </Link>
           </span>
         </div>
       </div>

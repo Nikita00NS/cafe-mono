@@ -7,6 +7,15 @@ import type { Order, OrderStatus, Settings } from '@/lib/types';
 import { nextActionLabel, nextStatus, ORDER_TYPE_LABEL } from '@/lib/order-status';
 import { formatCountdown, formatPrice, formatTime } from '@/lib/format';
 import { getOpenState } from '@/lib/hours';
+import {
+  fetchAdminOrders,
+  patchOrder as sendOrderPatch,
+  setStopItem,
+  persistSettings,
+  makeDemoOrder,
+  logout as apiLogout,
+  IS_DEMO,
+} from '@/lib/api-client';
 
 const COLUMNS: { id: string; title: string; statuses: OrderStatus[]; hot?: boolean }[] = [
   { id: 'new', title: 'Новые', statuses: ['new'], hot: true },
@@ -69,14 +78,15 @@ export function AdminApp() {
   const load = useCallback(
     async (silent = false) => {
       try {
-        const response = await fetch('/api/orders', { cache: 'no-store' });
-        if (response.status === 401) {
-          router.replace('/admin/login');
-          return;
+        const data = await fetchAdminOrders();
+        if (!data.ok) {
+          if (data.unauthorized) {
+            router.replace('/admin/login');
+            return;
+          }
+          throw new Error(data.error || 'Ошибка загрузки');
         }
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || 'Ошибка загрузки');
-        const nextOrders = (data.orders ?? []) as Order[];
+        const nextOrders = data.orders;
         const freshNew = nextOrders.filter((order) => order.status === 'new');
 
         if (knownNew.current === null) {
@@ -88,7 +98,7 @@ export function AdminApp() {
         }
 
         setOrders(nextOrders);
-        setSettings(data.settings as Settings);
+        setSettings(data.settings);
         setError(null);
       } catch (err) {
         if (!silent) setError(err instanceof Error ? err.message : 'Не удалось загрузить заказы');
@@ -143,14 +153,9 @@ export function AdminApp() {
             : order,
         ),
       );
-      const response = await fetch(`/api/orders/${id}`, {
-        method: 'PATCH',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        setError(data?.error || 'Не удалось обновить заказ');
+      const ok = await sendOrderPatch(id, body as { status?: OrderStatus; etaDeltaMinutes?: number });
+      if (!ok) {
+        setError('Не удалось обновить заказ');
         void load(true);
       }
     },
@@ -166,28 +171,19 @@ export function AdminApp() {
           }
         : prev,
     );
-    const response = await fetch('/api/admin/stoplist', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ id, stopped }),
-    });
-    if (!response.ok) setError('Не удалось обновить стоп-лист');
+    const ok = await setStopItem(id, stopped);
+    if (!ok) setError('Не удалось обновить стоп-лист');
   }, []);
 
   const saveSettings = useCallback(async () => {
     setSavingSettings(true);
-    const response = await fetch('/api/admin/settings', {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ...form, acceptingOrders: settings?.acceptingOrders }),
-    });
-    const data = await response.json().catch(() => ({}));
+    const data = await persistSettings({ ...form, acceptingOrders: settings?.acceptingOrders });
     setSavingSettings(false);
-    if (!response.ok) {
-      setError(data?.error || 'Не удалось сохранить настройки');
+    if (!data.ok) {
+      setError(data.error);
       return;
     }
-    setSettings(data.settings as Settings);
+    setSettings(data.settings);
     setDirty(false);
     setSavedAt(Date.now());
     setTimeout(() => setSavedAt(null), 2500);
@@ -197,20 +193,16 @@ export function AdminApp() {
     if (!settings) return;
     const next = !settings.acceptingOrders;
     setSettings({ ...settings, acceptingOrders: next });
-    await fetch('/api/admin/settings', {
-      method: 'PUT',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ acceptingOrders: next }),
-    });
+    await persistSettings({ acceptingOrders: next });
   }, [settings]);
 
   const createDemo = useCallback(async () => {
-    await fetch('/api/admin/demo', { method: 'POST' });
+    await makeDemoOrder();
     void load(true);
   }, [load]);
 
   const logout = useCallback(async () => {
-    await fetch('/api/admin/logout', { method: 'POST' });
+    await apiLogout();
     router.replace('/admin/login');
   }, [router]);
 
@@ -247,6 +239,14 @@ export function AdminApp() {
           <div className="admin-brand">
             <span className="admin-brand__mark">МОНО</span>
             <span className="admin-brand__tag">панель заказов</span>
+            {IS_DEMO && (
+              <span
+                className="admin-demo-chip"
+                title="Демонстрационный режим: заказы хранятся в этом браузере и не уходят на сервер"
+              >
+                демо
+              </span>
+            )}
           </div>
           <div className="admin-top__actions">
             <span className="admin-clock">
